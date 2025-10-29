@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import numpy as np
 from collections import Counter, defaultdict
 import statistics
 from typing import Dict, List
@@ -79,13 +78,9 @@ def analyze_multiple_laureates(data: List[Dict]):
 
             if first_prize.get("category_en") == second_prize.get("category_en"):
                 same_category_count += 1
-                same_category_laureates.append(
-                    laureate.get("name", "Неизвестно")
-                )  # Добавляем имя
+                same_category_laureates.append(laureate.get("name", "Неизвестно"))
             else:
-                different_category_laureates.append(
-                    laureate.get("name", "Неизвестно")
-                )  # Добавляем имя
+                different_category_laureates.append(laureate.get("name", "Неизвестно"))
 
             year1 = first_prize.get("award_year")
             year2 = second_prize.get("award_year")
@@ -113,42 +108,23 @@ def analyze_multiple_laureates(data: List[Dict]):
     for name in different_category_laureates:
         print(f"  - {name}")
 
-    prize_counts = [
-        len(item.get("prizes_relevant", []))
-        for item in data_with_migration
-        if item.get("type_") == "person"
-    ]
-    prize_counts = [pc for pc in prize_counts if pc >= 2]
-
-    if prize_counts:
-        counter = Counter(prize_counts)
-        counts, freqs = zip(*sorted(counter.items()))
-
-        plt.figure(figsize=(10, 6))
-        plt.bar(counts, freqs)
-        plt.title("Распределение лауреатов по количеству призов (2+)")
-        plt.xlabel("Количество призов")
-        plt.ylabel("Количество лауреатов")
-        plt.show()
-
     if time_differences:
-        plt.figure(figsize=(10, 6))
-        plt.hist(time_differences, bins=20, edgecolor="black")
-        plt.title("Распределение времени между первым и вторым призом")
-        plt.xlabel("Количество лет между призами")
-        plt.ylabel("Частота")
-        plt.show()
+        print(f"\n--- Статистика по времени между призами ---")
+        print(
+            f"  Среднее время между призами: {sum(time_differences) / len(time_differences):.1f} лет"
+        )
+        print(f"  Минимальный промежуток: {min(time_differences)} лет")
+        print(f"  Максимальный промежуток: {max(time_differences)} лет")
 
     different_category_count = len(two_time_laureates) - same_category_count
-    labels = ["Одна категория", "Разные категории"]
-    sizes = [same_category_count, different_category_count]
-    colors = ["lightblue", "lightcoral"]
-
-    if same_category_count > 0 or different_category_count > 0:
-        plt.figure(figsize=(8, 6))
-        plt.pie(sizes, labels=labels, colors=colors, autopct="%1.1f%%", startangle=90)
-        plt.title("Распределение дважды награжденных по смене категории")
-        plt.show()
+    print(f"\n--- Распределение по категориям ---")
+    print(f"  Одна категория: {same_category_count} лауреатов")
+    print(f"  Разные категории: {different_category_count} лауреатов")
+    if two_time_laureates:
+        same_percent = (same_category_count / len(two_time_laureates)) * 100
+        diff_percent = (different_category_count / len(two_time_laureates)) * 100
+        print(f"  Одна категория: {same_percent:.1f}%")
+        print(f"  Разные категории: {diff_percent:.1f}%")
 
 
 def analyze_refusals(data: List[Dict]):
@@ -322,12 +298,24 @@ def analyze_age_by_category(laureates_data, get_first_prize_age):
     mean_ages = [stats["mean"] for stats in category_stats.values()]
     median_ages = [stats["median"] for stats in category_stats.values()]
 
-    x = np.arange(len(categories))
+    x = list(range(len(categories)))
     width = 0.35
 
     fig, ax = plt.subplots(figsize=(12, 6))
-    ax.bar(x - width / 2, mean_ages, width, label="Средний возраст", alpha=0.8)
-    ax.bar(x + width / 2, median_ages, width, label="Медианный возраст", alpha=0.8)
+    ax.bar(
+        [pos - width / 2 for pos in x],
+        mean_ages,
+        width,
+        label="Средний возраст",
+        alpha=0.8,
+    )
+    ax.bar(
+        [pos + width / 2 for pos in x],
+        median_ages,
+        width,
+        label="Медианный возраст",
+        alpha=0.8,
+    )
 
     ax.set_xlabel("Категория")
     ax.set_ylabel("Возраст")
@@ -368,10 +356,6 @@ def analyze_gender_trends(laureates_data):
     """
     функция анализирует гендерные тенденции среди лауреатов по десятилетиям и за последние годы по категориям.
     """
-    from collections import defaultdict
-    import matplotlib.pyplot as plt
-    import numpy as np
-
     decade_gender_data = defaultdict(lambda: defaultdict(int))
 
     for item in laureates_data:
@@ -464,19 +448,19 @@ def analyze_gender_trends(laureates_data):
         percentages_recent.append(percentage)
 
     if categories_recent:
-        x = np.arange(len(categories_recent))
+        x = list(range(len(categories_recent)))
         width = 0.4
 
         fig, ax = plt.subplots(figsize=(12, 6))
         ax.bar(
-            x - width / 2,
+            [pos - width / 2 for pos in x],
             [t - w for t, w in zip(total_recent, women_recent)],
             width,
             label="Мужчины",
             alpha=0.8,
         )
         ax.bar(
-            x - width / 2,
+            [pos - width / 2 for pos in x],
             women_recent,
             width,
             label="Женщины",
